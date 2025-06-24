@@ -13,11 +13,16 @@ load_dotenv()
 # Initialize Flask app
 app = Flask(__name__)
 
+# Get the database URL from environment variable
+database_url = os.getenv('DATABASE_URL')
+if database_url and database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
 # Configuration
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = os.getenv('UPLOAD_FOLDER')
+app.config['UPLOAD_FOLDER'] = os.getenv('UPLOAD_FOLDER', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 # Email configuration
@@ -42,4 +47,4 @@ if not os.path.exists(app.config['UPLOAD_FOLDER']):
 from routes import *
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(host='0.0.0.0', port=int(os.getenv('PORT', 5000))) 
