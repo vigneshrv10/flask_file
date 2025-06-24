@@ -1,0 +1,14 @@
+[Unit]
+Description=File Sharing Application
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/filesharing
+Environment="PATH=/var/www/filesharing/venv/bin"
+ExecStart=/var/www/filesharing/venv/bin/gunicorn -c gunicorn_config.py app:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target 
