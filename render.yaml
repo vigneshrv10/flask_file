@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: secure-fileshare
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.18
+      - key: UPLOAD_FOLDER
+        value: uploads
+      - key: SECRET_KEY
+        value: fK9#mN2$pL5*vX8&jR3@qW7
+      - key: MAIL_SERVER
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_USE_TLS
+        value: "True"
+      - key: MAIL_USERNAME
+        value: shivvshiv109@gmail.com 
