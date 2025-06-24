@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 import os
 import uuid
 from cryptography.fernet import Fernet
-import magic
+import mimetypes
 
 from app import app, db, mail, bcrypt
 from models import User, File
@@ -65,10 +65,9 @@ def upload_file():
     
     file.save(file_path)
     
-    # Verify file type using python-magic
-    mime = magic.Magic(mime=True)
-    file_mime = mime.from_file(file_path)
-    if not any(ext in file_mime for ext in ['officedocument', 'spreadsheet', 'presentation']):
+    # Verify file type using mimetypes
+    file_type = mimetypes.guess_type(filename)[0]
+    if not file_type or not any(ext in file_type for ext in ['officedocument', 'spreadsheet', 'presentation']):
         os.remove(file_path)
         return jsonify({'message': 'Invalid file type'}), 400
     
