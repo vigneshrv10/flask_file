@@ -1,4 +1,4 @@
-from flask import request, jsonify, send_from_directory, url_for
+from flask import request, jsonify, send_from_directory, url_for, render_template
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_mail import Message
 from werkzeug.utils import secure_filename
@@ -27,6 +27,26 @@ def send_verification_email(user_email, token):
     verification_url = url_for('verify_email', token=token, _external=True)
     msg.body = f'Please click the following link to verify your email: {verification_url}'
     mail.send(msg)
+
+@app.route('/')
+def home():
+    return jsonify({
+        'message': 'Secure File Sharing API',
+        'endpoints': {
+            'client': {
+                'signup': '/api/client/signup',
+                'login': '/api/client/login',
+                'list_files': '/api/client/files',
+                'download': '/api/client/download/<file_id>'
+            },
+            'ops': {
+                'login': '/api/ops/login',
+                'upload': '/api/ops/upload',
+                'list_files': '/api/ops/files',
+                'delete_file': '/api/ops/files/delete/<file_id>'
+            }
+        }
+    }), 200
 
 @app.route('/api/ops/login', methods=['POST'])
 def ops_login():

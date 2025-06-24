@@ -1,164 +1,209 @@
-# Secure File-Sharing System
+# Secure File Sharing System
 
-A secure file-sharing system built with Flask that allows Operations Users to upload files and Client Users to download them through encrypted URLs.
+A secure file-sharing system built with Flask that enables Operations users to upload files and Client users to download them securely through encrypted URLs.
+
+## Tech Stack
+
+- **Backend Framework**: Flask 3.0.2
+- **Database**: PostgreSQL with SQLAlchemy ORM
+- **Authentication**: JWT (JSON Web Tokens)
+- **Email Service**: Flask-Mail with Gmail SMTP
+- **File Encryption**: Fernet (cryptography)
+- **Password Hashing**: Bcrypt
+- **Deployment**: Render.com
 
 ## Features
 
-- Two types of users: Operations (Ops) and Client
-- Secure file upload (only .pptx, .docx, and .xlsx files)
-- Email verification for client users
-- Encrypted download URLs
+### Operations User
+- Secure login with JWT authentication
+- File upload functionality (restricted to .pptx, .docx, and .xlsx)
+- File management capabilities
+- Role-based access control
+
+### Client User
+- Secure signup with email verification
 - JWT-based authentication
-- File type verification using magic numbers
+- View available files
+- Download files through encrypted URLs
+- Access control based on user roles
 
-## Prerequisites
+## Security Features
+- Password hashing using bcrypt
+- JWT-based authentication for API endpoints
+- Email verification for new users
+- Encrypted download URLs using Fernet
+- File type validation
+- Role-based access control
+- Secure file storage
 
-- Python 3.8 or higher
-- pip (Python package installer)
-- A Gmail account for sending verification emails
+## API Endpoints
 
-## Installation
+### Operations User Endpoints
+```
+POST /api/ops/login
+- Login for operations users
+- Required fields: email, password
 
-1. Clone the repository:
+POST /api/ops/upload
+- Upload files (only .pptx, .docx, .xlsx)
+- Requires JWT authentication
+- Form data: file
+
+GET /api/ops/files
+- List all uploaded files
+- Requires JWT authentication
+
+DELETE /api/ops/files/delete/<file_id>
+- Delete a specific file
+- Requires JWT authentication
+```
+
+### Client User Endpoints
+```
+POST /api/client/signup
+- Register new client user
+- Required fields: email, password
+
+POST /api/client/login
+- Login for client users
+- Required fields: email, password
+
+GET /api/client/files
+- List available files
+- Requires JWT authentication
+
+GET /api/client/download/<file_id>
+- Get encrypted download URL
+- Requires JWT authentication
+
+GET /api/download/<token>
+- Download file using encrypted URL
+- Requires valid token
+```
+
+## Setup Instructions
+
+1. **Clone the Repository**
 ```bash
 git clone <repository-url>
 cd <repository-name>
 ```
 
-2. Create a virtual environment and activate it:
-```bash
-python -m venv venv
-# On Windows:
-venv\Scripts\activate
-# On Unix or MacOS:
-source venv/bin/activate
-```
-
-3. Install the required packages:
+2. **Install Dependencies**
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Create a `.env` file in the root directory with the following content:
+3. **Environment Variables**
+Create a `.env` file with the following variables:
 ```
-SECRET_KEY=your-secret-key-here
+SECRET_KEY=your_secret_key
 MAIL_SERVER=smtp.gmail.com
 MAIL_PORT=587
 MAIL_USE_TLS=True
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-app-password
+MAIL_USERNAME=your_email@gmail.com
+MAIL_PASSWORD=your_app_password
+DATABASE_URL=your_postgresql_url
 UPLOAD_FOLDER=uploads
-DATABASE_URL=sqlite:///database.db
 ```
 
-Note: For the Gmail password, you'll need to generate an App Password. Go to your Google Account settings > Security > 2-Step Verification > App passwords
+4. **Initialize Database**
+```python
+from app import db
+db.create_all()
+```
 
-5. Create the database:
+5. **Run the Application**
 ```bash
-python
->>> from app import db
->>> db.create_all()
->>> exit()
+gunicorn app:app
 ```
 
-## Running the Application
-
-1. Start the Flask server:
-```bash
-python app.py
-```
-
-The server will start on `http://localhost:5000`
-
-## API Endpoints
+## Usage Examples
 
 ### Operations User
 
-1. Login:
-```
-POST /api/ops/login
-Content-Type: application/json
-
-{
-    "email": "ops@example.com",
-    "password": "password123"
-}
+1. **Login**
+```bash
+curl -X POST http://localhost:5000/api/ops/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "ops@example.com", "password": "password"}'
 ```
 
-2. Upload File:
-```
-POST /api/ops/upload
-Authorization: Bearer <token>
-Content-Type: multipart/form-data
-
-file: <file>
+2. **Upload File**
+```bash
+curl -X POST http://localhost:5000/api/ops/upload \
+  -H "Authorization: Bearer <your_jwt_token>" \
+  -F "file=@/path/to/document.xlsx"
 ```
 
 ### Client User
 
-1. Sign Up:
-```
-POST /api/client/signup
-Content-Type: application/json
-
-{
-    "email": "client@example.com",
-    "password": "password123"
-}
-```
-
-2. Login:
-```
-POST /api/client/login
-Content-Type: application/json
-
-{
-    "email": "client@example.com",
-    "password": "password123"
-}
-```
-
-3. List Files:
-```
-GET /api/client/files
-Authorization: Bearer <token>
-```
-
-4. Get Download Link:
-```
-GET /api/client/download/<file_id>
-Authorization: Bearer <token>
-```
-
-## Running Tests
-
+1. **Signup**
 ```bash
-pytest tests/
+curl -X POST http://localhost:5000/api/client/signup \
+  -H "Content-Type: application/json" \
+  -d '{"email": "client@example.com", "password": "password"}'
+```
+
+2. **Download File**
+```bash
+# First get the download URL
+curl -X GET http://localhost:5000/api/client/download/<file_id> \
+  -H "Authorization: Bearer <your_jwt_token>"
+
+# Then use the returned URL to download the file
+curl -X GET http://localhost:5000/api/download/<encrypted_token>
 ```
 
 ## Deployment
 
-For production deployment:
+The application is deployed on Render.com with the following configuration:
 
-1. Use a production-grade WSGI server like Gunicorn:
-```bash
-pip install gunicorn
-gunicorn app:app
-```
+1. **Web Service Settings**
+- Build Command: `pip install -r requirements.txt`
+- Start Command: `gunicorn app:app`
+- Python Version: 3.9.18
 
-2. Set up a reverse proxy (e.g., Nginx) to handle static files and SSL termination
+2. **Environment Variables**
+All environment variables mentioned in the setup section should be configured in the Render dashboard.
 
-3. Use environment variables for all sensitive configuration
+3. **Database**
+PostgreSQL database is provisioned through Render.com's database service.
 
-4. Set up monitoring and logging
+## Security Considerations
 
-5. Use a production-grade database (e.g., PostgreSQL)
+1. **File Upload Security**
+- Only allowed file types (.pptx, .docx, .xlsx)
+- Secure filename generation
+- File type verification
 
-## Security Features
-
-- Password hashing using bcrypt
+2. **User Authentication**
 - JWT-based authentication
-- Email verification for new users
-- File type verification using magic numbers
+- Password hashing
+- Email verification
+
+3. **Download Security**
 - Encrypted download URLs
-- Role-based access control 
+- Time-limited access
+- Role-based access control
+
+## Error Handling
+
+The API includes comprehensive error handling for:
+- Invalid file types
+- Unauthorized access
+- Invalid tokens
+- File not found
+- Server errors
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License. 
